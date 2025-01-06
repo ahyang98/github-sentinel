@@ -1,45 +1,52 @@
 from src.storage.db_handler import DBHandler
 from src.subscription.manager import SubscriptionManager
 from src.fetcher.github_api import GitHubAPIClient
-from src.report.generator import ReportGenerator
 from src.notifier.email_notifier import EmailNotifier
 from src.scheduler.task_scheduler import TaskScheduler
+from src.report.generator import ReportGenerator
+from src.ui.cli import CLI
+import json
+
 
 def fetch_and_notify():
-    db_handler = DBHandler("GitHubSentinel/subscriptions.db")
-    subscription_manager = SubscriptionManager(db_handler)
-
-    # Initialize API client, report generator, and notifier
-    api_client = GitHubAPIClient(token="YOUR_GITHUB_TOKEN")
-    report_generator = ReportGenerator()
-    email_notifier = EmailNotifier(smtp_server="smtp.example.com", port=587, username="user@example.com", password="password")
-
+    subscriptions = subscription_manager.list_subscriptions()
     updates = []
-    for repo in subscription_manager.list_subscriptions():
-        try:
-            latest_release = api_client.fetch_latest_release(repo)
-            updates.append(f"{repo}: {latest_release['name']} - {latest_release['html_url']}")
-        except Exception as e:
-            updates.append(f"Failed to fetch updates for {repo}: {e}")
 
-    report_content = report_generator.generate_markdown_report(updates)
-    report_generator.save_report(report_content, "GitHubSentinel/report.md")
+    for repo in subscriptions:
+        latest_release = github_client.fetch_latest_release(repo)
+        updates.append(f"Latest release for {repo}: {latest_release.get('tag_name', 'N/A')}")
 
-    email_notifier.send_email("recipient@example.com", "GitHub Sentinel Report", report_content)
+    if updates:
+        report = report_generator.generate_markdown_report(updates)
+        report_generator.save_report(report, "GitHubSentinel/reports/latest_report.md")
+        email_notifier.send_email(
+            "recipient@example.com", "GitHub Updates", "\n".join(updates)
+        )
 
-    print("Update fetched, report generated, and notification sent.")
 
 def main():
-    task_scheduler = TaskScheduler()
-    task_scheduler.add_task(fetch_and_notify, interval=24)  # Run daily
-    task_scheduler.start()
+    global subscription_manager, github_client, email_notifier, report_generator
 
-    print("Scheduler started. Press Ctrl+C to exit.")
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        task_scheduler.stop()
+    with open("src/config/config.json", "r") as config_file:
+        config = json.load(config_file)
+
+    db_handler = DBHandler(config["db_path"])
+    subscription_manager = SubscriptionManager(db_handler)
+    github_client = GitHubAPIClient(config_path="src/config/config.json")
+    email_notifier = EmailNotifier(config_path="src/config/config.json")
+    report_generator = ReportGenerator()
+
+    # Load default subscriptions
+    subscription_manager.load_default_subscriptions()
+
+    # Initialize CLI and TaskScheduler
+    cli = CLI(subscription_manager)
+    scheduler = TaskScheduler(config_path="src/config/config.json")
+    scheduler.add_task(fetch_and_notify)
+    scheduler.start()
+
+    # Launch CLI
+    cli.display_menu()
 
 if __name__ == "__main__":
     main()

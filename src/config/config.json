@@ -1,0 +1,9 @@
+{
+  "github_token": "your_github_token",
+  "smtp_server": "smtp.example.com",
+  "smtp_port": 587,
+  "smtp_username": "your_email@example.com",
+  "smtp_password": "your_email_password",
+  "fetch_interval": 24,
+  "db_path": "GitHubSentinel/subscriptions.db"
+}

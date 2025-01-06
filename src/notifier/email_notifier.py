@@ -1,12 +1,15 @@
 import smtplib
 from email.mime.text import MIMEText
+import json
 
 class EmailNotifier:
-    def __init__(self, smtp_server, port, username, password):
-        self.smtp_server = smtp_server
-        self.port = port
-        self.username = username
-        self.password = password
+    def __init__(self, config_path="src/config/config.json"):
+        with open(config_path, "r") as config_file:
+            config = json.load(config_file)
+            self.smtp_server = config["smtp_server"]
+            self.port = config["smtp_port"]
+            self.username = config["smtp_username"]
+            self.password = config["smtp_password"]
 
     def send_email(self, to_address, subject, content):
         """Send an email notification."""

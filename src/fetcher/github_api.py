@@ -1,9 +1,13 @@
 import requests
+import json
 
 class GitHubAPIClient:
-    def __init__(self, token):
-        self.base_url = "https://api.github.com"
-        self.headers = {"Authorization": f"token {token}"}
+    def __init__(self, config_path="src/config/config.json"):
+        with open(config_path, "r") as config_file:
+            config = json.load(config_file)
+            self.base_url = "https://api.github.com"
+            self.token = config["github_token"]
+            self.headers = {"Authorization": f"token {self.token}"}
 
     def fetch_repo_updates(self, repo):
         """Fetch updates for a specific repository."""
