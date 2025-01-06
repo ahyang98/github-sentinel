@@ -1,0 +1,9 @@
+{
+  "default_subscriptions": [
+    {
+      "repo_name": "langchain-ai/langchain",
+      "description": "LangChain - Building applications with LLMs",
+      "notes": "Keep track of the latest updates for LangChain"
+    }
+  ]
+}

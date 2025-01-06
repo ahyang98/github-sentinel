@@ -11,3 +11,10 @@ class GitHubAPIClient:
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
         return response.json()
+
+    def fetch_latest_release(self, repo):
+        """Fetch the latest release of a repository."""
+        url = f"{self.base_url}/repos/{repo}/releases/latest"
+        response = requests.get(url, headers=self.headers)
+        response.raise_for_status()
+        return response.json()
