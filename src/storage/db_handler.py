@@ -17,10 +17,20 @@ class DBHandler:
         self.conn.commit()
 
     def save_subscription(self, repo_url):
-        """Save a new subscription."""
-        query = "INSERT INTO subscriptions (repo_url) VALUES (?)"
-        self.conn.execute(query, (repo_url,))
-        self.conn.commit()
+        """Save a new subscription, avoiding duplicates."""
+        # Check if the repo_url already exists
+        query = "SELECT COUNT(*) FROM subscriptions WHERE repo_url = ?"
+        cursor = self.conn.execute(query, (repo_url,))
+        count = cursor.fetchone()[0]
+
+        if count == 0:
+            # If repo_url does not exist, insert it
+            query = "INSERT INTO subscriptions (repo_url) VALUES (?)"
+            self.conn.execute(query, (repo_url,))
+            self.conn.commit()
+            print(f"Subscription to {repo_url} added successfully.")
+        else:
+            print(f"Repository {repo_url} is already subscribed.")
 
     def delete_subscription(self, repo_url):
         """Delete a subscription."""

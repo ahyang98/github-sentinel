@@ -1,3 +1,4 @@
+import os
 import markdown
 
 class ReportGenerator:
@@ -10,5 +11,10 @@ class ReportGenerator:
 
     def save_report(self, content, file_path):
         """Save the report to a file."""
+        # Ensure the directory exists
+        directory = os.path.dirname(file_path)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
         with open(file_path, "w") as file:
             file.write(content)

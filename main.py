@@ -1,3 +1,4 @@
+from src.config.config import Config
 from src.storage.db_handler import DBHandler
 from src.subscription.manager import SubscriptionManager
 from src.fetcher.github_api import GitHubAPIClient
@@ -5,7 +6,6 @@ from src.notifier.email_notifier import EmailNotifier
 from src.scheduler.task_scheduler import TaskScheduler
 from src.report.generator import ReportGenerator
 from src.ui.cli import CLI
-import json
 
 
 def fetch_and_notify():
@@ -25,28 +25,46 @@ def fetch_and_notify():
 
 
 def main():
-    global subscription_manager, github_client, email_notifier, report_generator
+    global subscription_manager, github_client, email_notifier, report_generator, scheduler
 
-    with open("src/config/config.json", "r") as config_file:
-        config = json.load(config_file)
+    # Load configuration
+    config = Config()
 
-    db_handler = DBHandler(config["db_path"])
+    # Initialize components
+    db_handler = DBHandler()
     subscription_manager = SubscriptionManager(db_handler)
-    github_client = GitHubAPIClient(config_path="src/config/config.json")
-    email_notifier = EmailNotifier(config_path="src/config/config.json")
+    github_client = GitHubAPIClient(config)
+    email_notifier = EmailNotifier(config)
     report_generator = ReportGenerator()
+    scheduler = TaskScheduler(config)
 
     # Load default subscriptions
     subscription_manager.load_default_subscriptions()
 
-    # Initialize CLI and TaskScheduler
-    cli = CLI(subscription_manager)
-    scheduler = TaskScheduler(config_path="src/config/config.json")
-    scheduler.add_task(fetch_and_notify)
+    # **立即获取更新**：在程序启动时立即获取一次仓库更新
+    fetch_and_notify()
+
+    # Start the scheduler (this is a non-blocking call)
     scheduler.start()
 
-    # Launch CLI
-    cli.display_menu()
+    # Initialize CLI
+    cli = CLI(subscription_manager, fetch_and_notify)
+
+    print("Welcome to GitHub Sentinel! Type 'help' for available commands.")
+
+    # Start interactive loop
+    while True:
+        # Get user input
+        user_input = input("> ").strip()
+
+        # Parse command and arguments
+        if user_input:
+            parts = user_input.split()
+            command = parts[0]
+            args = parts[1:]
+            # Handle the command
+            cli.handle_command(command, *args)
+
 
 if __name__ == "__main__":
     main()

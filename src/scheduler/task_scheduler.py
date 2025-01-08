@@ -2,10 +2,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import json
 
 class TaskScheduler:
-    def __init__(self, config_path="src/config/config.json"):
-        with open(config_path, "r") as config_file:
-            config = json.load(config_file)
-            self.interval = config["fetch_interval"]
+    def __init__(self, config):
+        self.interval = config.fetch_interval
         self.scheduler = BackgroundScheduler()
 
     def add_task(self, func):
