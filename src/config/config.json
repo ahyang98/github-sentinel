@@ -5,5 +5,6 @@
   "smtp_username": "your_email@example.com",
   "smtp_password": "your_email_password",
   "fetch_interval": 24,
-  "db_path": "GitHubSentinel/subscriptions.db"
+  "db_path": "GitHubSentinel/subscriptions.db",
+  "open_api_key": "your_open_api_key"
 }

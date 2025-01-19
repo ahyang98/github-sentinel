@@ -2,7 +2,7 @@ import json
 import os
 
 class SubscriptionManager:
-    def __init__(self, storage, config_path="src/config/subscriptions.json"):
+    def __init__(self, storage, config_path="config/subscriptions.json"):
         self.storage = storage
         self.config_path = config_path
 
