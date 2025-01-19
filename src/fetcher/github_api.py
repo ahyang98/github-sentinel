@@ -4,8 +4,7 @@ import requests
 class GitHubAPIClient:
     def __init__(self, config):
         self.base_url = "https://api.github.com"
-        self.token = os.environ.get("GITHUB_TOKEN")
-        self.headers = {"Authorization": f"token {self.token}"}
+        self.headers = {"Authorization": f"token {os.environ.get("GITHUB_TOKEN")}"}
 
     def fetch_repo_updates(self, repo):
         """Fetch updates for a specific repository."""
