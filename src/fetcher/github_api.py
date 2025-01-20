@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import requests
 
@@ -20,24 +21,42 @@ class GitHubAPIClient:
         response.raise_for_status()
         return response.json()
     
-    def fetch_issues(self, repo):
+    def fetch_issues(self, repo, start_date:str=None, end_date:str=None):
         """Fetch all issues from a repository."""
-        url = f"{self.base_url}/repos/{repo}/issues?state=open"
-        response = requests.get(url, headers=self.headers)
+        url = f"{self.base_url}/repos/{repo}/issues"
+        params = {'state': 'closed'}
+        if start_date:
+            params['since'] = datetime.strptime(start_date, "%Y-%m-%d").isoformat()
+        response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
+        if end_date:
+            issues = response.json()
+            issues = [issue for issue in issues if issue['closed_at'] <= datetime.strptime(end_date, "%Y-%m-%d").isoformat()]
+            return issues
         return response.json()
 
-    def fetch_pull_requests(self, repo):
+    def fetch_pull_requests(self, repo, start_date:str=None, end_date:str=None):
         """Fetch all pull requests from a repository."""
-        url = f"{self.base_url}/repos/{repo}/pulls?state=open"
-        response = requests.get(url, headers=self.headers)
+        url = f"{self.base_url}/repos/{repo}/pulls"
+        params = {'state': 'closed'}
+        response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
-        return response.json()
+        prs = response.json()
+        if start_date:            
+            prs = [pr for pr in prs if pr['closed_at'] >= datetime.strptime(start_date, "%Y-%m-%d").isoformat()]
+        if end_date:
+            prs = [pr for pr in prs if pr['closed_at'] <= datetime.strptime(end_date, "%Y-%m-%d").isoformat()]
+        return prs
     
-    def fetch_commits(self, repo):
+    def fetch_commits(self, repo, start_date:str=None, end_date:str=None):
         """Fetch all commits from a repository."""
         url = f"{self.base_url}/repos/{repo}/commits"
-        response = requests.get(url, headers=self.headers)
+        params = {'state': 'closed'}
+        if start_date:
+            params['since'] = datetime.strptime(start_date, "%Y-%m-%d").isoformat()
+        if end_date:
+            params['until'] = datetime.strptime(end_date, "%Y-%m-%d").isoformat()
+        response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
         return response.json()
     

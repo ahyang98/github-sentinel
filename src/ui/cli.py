@@ -36,6 +36,13 @@ class CLI:
         parser_generate.add_argument('file', type=str, help='The markdown file to generate report from')
         parser_generate.set_defaults(func=self.generate_daily_report)
 
+        # Generate report command
+        generate_report_parser = subparsers.add_parser("generate-range", help="Generate a project report")
+        generate_report_parser.add_argument('repo', type=str, help='The repository to export progress from (e.g., owner/repo)')
+        generate_report_parser.add_argument("--start-date", type=str, help="Start date (YYYY-MM-DD)")
+        generate_report_parser.add_argument("--end-date", type=str, help="End date (YYYY-MM-DD)")
+        generate_report_parser.set_defaults(func=self.generate_range_report)
+
         parser_help = subparsers.add_parser('help', help='Show help message')
         parser_help.set_defaults(func=self.print_help)
 
@@ -69,6 +76,10 @@ class CLI:
     def generate_daily_report(self, args):
         self.report_generator.generate_daily_report(args.file)
         print(f"Generated daily report from file: {args.file}")
+    
+    def generate_range_report(self, args):
+        self.report_generator.generate_range_report(args.repo, args.start_date, args.end_date)
+        print(f"Generated project repo {args.repo}  report from {args.start_date} to {args.end_date}")
 
     def print_help(self, args=None):
         self.parser.print_help()

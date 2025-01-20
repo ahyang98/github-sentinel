@@ -38,6 +38,10 @@ class LLMClient:
             response = self.client.chat.completions.create(
                 messages=[
                     {
+                        "role": "system",
+                        "content": "你是github项目进展分析人员，需要分析整理github项目的最新进展生成中文简报。",
+                    },
+                    {
                         "role": "user",
                         "content": prompt,
                     }

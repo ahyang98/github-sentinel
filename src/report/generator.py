@@ -105,3 +105,35 @@ Please generate a summary in formal Markdown format, including separate sections
             # file.write(f"# {repo} Daily Report - {date_str}\n\n")
             file.write(summary)
         return summary
+
+    def generate_range_report(self, repo:str, start_date:str, end_date:str):
+        issues = self.github_client.fetch_issues(repo, start_date, end_date)
+        prs = self.github_client.fetch_pull_requests(repo, start_date, end_date)
+        commits = self.github_client.fetch_commits(repo, start_date, end_date)
+        # Save issues, PRs, and commits to markdown        
+        markdown_file = f"GitHubSentinel/reports/{repo}_{start_date}_{end_date}_progress.md"
+        directory = os.path.dirname(markdown_file)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory) 
+        
+        with open(markdown_file, "w", encoding="utf-8") as file:
+            file.write(f"# {repo} Progress - {start_date}~{end_date}\n\n")
+            file.write("## Issues\n")
+            for issue in issues:
+                file.write(f"- {issue['title']} (#{issue['number']}) - {issue['user']['login']}\n")
+                file.write(f"  {issue['html_url']}\n")
+            file.write("\n## Pull Requests\n")
+            for pr in prs:
+                file.write(f"- {pr['title']} (#{pr['number']}) - {pr['user']['login']}\n")
+                file.write(f"  {pr['html_url']}\n")
+            file.write("\n## Commits\n")
+            for commit in commits:
+                file.write(f"- {commit['commit']['message']} - {commit['commit']['author']['name']}\n")
+                file.write(f"  {commit['html_url']}\n")
+
+        # Call GPT-4 to generate report
+        report_content = self.llm_client.generate_report_from_issues_prs_commits(issues, prs, commits)
+        report_file = f"GitHubSentinel/reports/{repo}_{start_date}_{end_date}_report.md"
+        with open(report_file, "w", encoding="utf-8") as file:
+            file.write(f"# {repo} Report - {repo}_{start_date}_{end_date}_\n\n")
+            file.write(report_content)
